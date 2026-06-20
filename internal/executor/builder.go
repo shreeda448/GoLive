@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"archive/tar"
 	"context"
 	"fmt"
 	"io"
@@ -35,11 +36,12 @@ func RunBuild(repoURL string) error {
 	repoName := strings.TrimSuffix(base, ".git")
 	branchName := "master"
 	dirOfSourceCode := fmt.Sprintf("./%s-%s", repoName, branchName)
+	buildCmd := fmt.Sprintf("cd %s && go build -o /workspace/compiled-binary ./cmd/api", dirOfSourceCode)
 	resp, err := cli.ContainerCreate(ctx,
 		&container.Config{
 			Image:      "golang:alpine",
 			WorkingDir: "/workspace",
-			Cmd:        []string{"go", "build", "-o", "compiled-binary", dirOfSourceCode},
+			Cmd:        []string{"sh", "-c", buildCmd},
 		},
 		nil, nil, nil, "",
 	)
@@ -47,7 +49,7 @@ func RunBuild(repoURL string) error {
 		return fmt.Errorf("failed to create container: %v", err)
 	}
 	cleanRepoURL := strings.TrimSuffix(repoURL, ".git")
-	suffix := "archive/refs/heads/main.tar.gz"
+	suffix := "archive/refs/heads/master.tar.gz"
 	finalURL := cleanRepoURL + "/" + path.Clean(suffix)
 	response, err := http.Get(finalURL)
 	if err != nil {
@@ -76,6 +78,23 @@ func RunBuild(repoURL string) error {
 		stdcopy.StdCopy(os.Stdout, os.Stderr, out)
 		out.Close()
 	}
+
+	containerReader, _, err := cli.CopyFromContainer(ctx, resp.ID, "/workspace/compiled-binary")
+	if err != nil {
+		return fmt.Errorf("failed to copy from the container: %v", err)
+	}
+	defer containerReader.Close()
+	tarReader := tar.NewReader(containerReader)
+	_, err = tarReader.Next()
+	if err != nil {
+		return fmt.Errorf("some error occured: %v", err)
+	}
+	fileReader, err := os.Create("final-build-output")
+	if err != nil {
+		return fmt.Errorf("failed to create file:%v", err)
+	}
+	defer fileReader.Close()
+	io.Copy(fileReader, tarReader)
 
 	cli.ContainerRemove(ctx, resp.ID, container.RemoveOptions{Force: true})
 
