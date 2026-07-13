@@ -37,7 +37,7 @@ func RunBuild(repoURL string, logWriter io.Writer, deployID string) (string, err
 	repoName := strings.TrimSuffix(base, ".git")
 	branchName := "master"
 	dirOfSourceCode := fmt.Sprintf("./%s-%s", repoName, branchName)
-	buildCmd := fmt.Sprintf("cd %s && go build -o /workspace/compiled-binary ./cmd/api", dirOfSourceCode)
+	buildCmd := fmt.Sprintf("cd %s/backend && go build -o /workspace/compiled-binary ./cmd/api", dirOfSourceCode)
 	resp, err := cli.ContainerCreate(ctx,
 		&container.Config{
 			Image:      "golang:alpine",
@@ -88,7 +88,7 @@ func RunBuild(repoURL string, logWriter io.Writer, deployID string) (string, err
 	tarReader := tar.NewReader(containerReader)
 	_, err = tarReader.Next()
 	if err != nil {
-		return "", fmt.Errorf("some error occured: %v", err)
+		return "", fmt.Errorf("error while reading tar file : %v", err)
 	}
 	uniqKey := fmt.Sprintf("%s.tar", deployID)
 	artifactURL, err := UploadToS3(ctx, tarReader, uniqKey)

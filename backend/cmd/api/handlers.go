@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -113,25 +114,39 @@ func Worker(d DeployJob, db *sql.DB) {
 	query := `UPDATE deployments SET status = $1 WHERE id = $2`
 	_, err := db.Exec(query, "BUILDING", d.DeployID)
 	if err != nil {
-		log.Printf("some error occured : %v", err)
+		log.Printf("db query execution error : %v", err.Error())
 		return
 	}
 	myWriter := LogWriter{DeployID: d.DeployID}
 	artifactURL, err := executor.RunBuild(outputDir, myWriter, d.DeployID)
 	if err != nil {
-		log.Printf("error occured in building : %v", err)
+		log.Printf("error occured in building : %v", err.Error())
 		_, err := db.Exec(query, "FAILED", d.DeployID)
 		if err != nil {
-			log.Printf("some error occured : %v", err)
+			log.Printf("db query execution error : %v", err.Error())
 			return
 		}
 		return
 	}
 
+	freePort, err := getFreePort()
+	if err != nil {
+		log.Printf("error acquiring free port : %v", err.Error())
+		return
+	}
+	err = executor.RunApplication(artifactURL, freePort, d.DeployID)
+	if err != nil {
+		log.Printf("error running the application : %v", err.Error())
+		return
+	}
+	proxyMutex.Lock()
+	runningApps[d.DeployID] = fmt.Sprintf("http://localhost:%d", freePort)
+	proxyMutex.Unlock()
+
 	successQuery := `UPDATE deployments SET status = $1, artifact_url = $2 WHERE id=$3`
 	_, err = db.Exec(successQuery, "SUCCESS", artifactURL, d.DeployID)
 	if err != nil {
-		log.Printf("some error occured : %v", err)
+		log.Printf("db query execution error : %v", err.Error())
 		return
 	}
 }
@@ -201,4 +216,17 @@ func (q *MyAsyncQ) ProxyHandler(w http.ResponseWriter, r *http.Request) {
 	proxy := httputil.NewSingleHostReverseProxy(curAppURL)
 	prefix := fmt.Sprintf("/view/%s", id)
 	http.StripPrefix(prefix, proxy).ServeHTTP(w, r)
+}
+
+func getFreePort() (int, error) {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		return 0, err
+	}
+	listener, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		return 0, err
+	}
+	defer listener.Close()
+	return listener.Addr().(*net.TCPAddr).Port, nil
 }

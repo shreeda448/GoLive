@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>AccessDenied</Code><Message>Access Denied.</Message><Key>b1db7df6-c70c-4543-a56e-d65fb251e0f1.tar</Key><BucketName>golive-build-artifacts</BucketName><Resource>/golive-build-artifacts/b1db7df6-c70c-4543-a56e-d65fb251e0f1.tar</Resource><RequestId>18C1ED73D3D75C2D</RequestId><HostId>dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8</HostId></Error>

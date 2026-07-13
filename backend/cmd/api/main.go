@@ -44,7 +44,10 @@ func main() {
 	mux.HandleFunc("POST /deploy", mq.DeployHandler)
 	mux.HandleFunc("GET /status", mq.StatusHandler)
 	mux.HandleFunc("GET /logs", mq.LogsHandler)
-	mux.HandleFunc("GET /view/{id}", mq.ProxyHandler)
+	mux.HandleFunc("GET /view/{id}/", mq.ProxyHandler)
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello world from my live deployed clone!!"))
+	})
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:5173"},
