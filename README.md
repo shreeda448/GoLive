@@ -76,4 +76,4 @@ go run ./cmd/api
 ```bash
 cd golive-ui
 npm run dev
-```bash
+```
