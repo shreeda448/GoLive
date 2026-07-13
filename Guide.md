@@ -9,7 +9,7 @@ This guide walks you through the step-by-step process of building a custom deplo
 ### Task 1: The Docker Compose Setup
 
 Create a docker-compose.yml file in the root of your project to spin up PostgreSQL:
-
+```
 version: '3.8'  
 services:  
 db:  
@@ -20,22 +20,22 @@ POSTGRES_PASSWORD: password
 POSTGRES_DB: vercel_clone  
 ports:  
 \- "5432:5432"
-
-Run docker compose up -d to start the database in the background.
+```
+Run ``` docker compose up -d ``` to start the database in the background.
 
 ### Task 2: The Go Driver & Schema
 
-Install the Postgres driver: go get github.com/lib/pq (or github.com/jackc/pgx/v5).
+Install the Postgres driver: ```go get github.com/lib/pq (or github.com/jackc/pgx/v5)```
 
 Create your connection and initialize the table:
-
+```
 CREATE TABLE IF NOT EXISTS deployments (  
 id TEXT PRIMARY KEY,  
 repo_url TEXT NOT NULL,  
 status TEXT NOT NULL,  
 artifact_url TEXT  
 );
-
+```
 ## Phase 2: State Tracking API
 
 **Objective:** Create the core API endpoints to accept deployment jobs and generate unique IDs.
@@ -44,8 +44,8 @@ artifact_url TEXT
 
 When a user hits POST /deploy with a valid repo_url, the server must immediately return:
 
-- **Status Code:** 202 Accepted
-- **Body:** {"deploy_id": "&lt;unique-uuid&gt;", "status": "QUEUED"}
+- **Status Code:** ```202 Accepted```
+- **Body:** ```{"deploy_id": "&lt;unique-uuid&gt;", "status": "QUEUED"}```
 
 ### Task 2: Database Integration
 
@@ -54,13 +54,13 @@ Right after generating the deployID (using github.com/google/uuid), use your dat
 ### Task 3: The Async Queue
 
 Create a Go Channel to handle background jobs without blocking the HTTP response:
-
+```
 type DeployJob struct {  
 DeployID string  
 RepoURL string  
 }  
 type AsyncQueue chan DeployJob
-
+```
 Push the DeployJob into the channel inside your DeployHandler, and have a background Worker goroutine listen to this channel to process the builds.
 
 ## Phase 3: Lifecycle & Status Endpoint
@@ -86,7 +86,7 @@ Extract the ID from the URL, run a SELECT status FROM deployments WHERE id = \$1
 
 ### Task 1: Initialize the React App
 
-Run npm create vite@latest golive-ui -- --template react and create a simple UI with a Text Input and a "Deploy" button.
+Run``` npm create vite@latest golive-ui -- --template react``` and create a simple UI with a Text Input and a "Deploy" button.
 
 ### Task 2: Defeat CORS
 
@@ -111,7 +111,7 @@ Store active connections in a global map protected by a sync.Mutex.
 ### Task 2: The Custom Writer
 
 Create a custom io.Writer in Go that writes incoming byte streams directly to the WebSocket connection associated with that specific DeployID.
-
+```
 func (w LogWriter) Write(p \[\]byte) (int, error) {  
 clientsMutex.Lock()  
 ws, exists := clients\[w.DeployID\]  
@@ -121,7 +121,7 @@ ws.WriteMessage(websocket.TextMessage, p)
 }  
 return len(p), nil  
 }
-
+```
 Pass this custom writer to the Docker SDK's stdcopy.StdCopy function so all container logs pipe to the browser.
 
 ### Task 3: The React Terminal
@@ -150,23 +150,23 @@ Return the public URL of the uploaded file and update the deployments database t
 
 ### Task 1: The Port Finder & Runner
 
-Create a function that asks the OS for a random available port using net.Listen("tcp", "localhost:0").
+Create a function that asks the OS for a random available port using ```net.Listen("tcp", "localhost:0")```.
 
 Download the binary from S3, save it locally, make it executable (os.Chmod), and run it in the background using exec.Command. Pass the dynamic port in the environment variables (PORT=...).
 
 ### Task 2: The Global Registry
 
 Create a high-performance routing table using a Read-Write Mutex:
-
+```
 var (  
 runningApps = make(map\[string\]string)  
 proxyMutex sync.RWMutex  
 )
-
+```
 When the app starts successfully, map the DeployID to the local URL (e.g., <http://localhost:8432>).
 
 ### Task 3: The Reverse Proxy Handler
 
-Create a final endpoint: GET /view/{id}/.
+Create a final endpoint:``` GET /view/{id}/```.
 
 When a request comes in, check the runningApps map. If found, use Go's built-in httputil.NewSingleHostReverseProxy to secretly forward the client's traffic to the background application port!
