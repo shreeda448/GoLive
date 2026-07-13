@@ -1,0 +1,155 @@
+.newDeploymentSection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  top: 1%;
+  padding: 0px;
+  height: 3%;
+  width: 100%;
+}
+
+#projectURL {
+  height: 100%;
+  width: 40%;
+  padding-left: 19px;
+  margin-right: 1%;
+  border-color: #214969;
+  color: #24eaf7;
+  border-radius: 5px;
+}
+
+#projectURL::placeholder {
+  color: #059099;
+}
+
+#projectURL:focus::placeholder {
+  color: #44e8f2;
+}
+
+#projectURL:focus {
+  border-color: #0fc5ed;
+  outline: none;
+}
+
+#projectURL:hover {
+  border-color: #0fc5ed;
+}
+
+#deploy-button {
+  height: 100%;
+  color: #059099;
+  background-color: #07233d;
+  border-color: #214969;
+  padding-bottom: 22px;
+  border-radius: 6px;
+}
+
+#deploy-button:hover {
+  border-color: #0fc5ed;
+  color: #44e8f2;
+}
+
+.app {
+  height: 100vh;
+  border: none;
+}
+
+#title {
+  display: flex;
+  justify-content: center;
+  height: 9%;
+  line-height: 100%;
+  color: #24eaf7;
+}
+
+* {
+  background-color: #011423;
+}
+
+.deployment-job {
+  margin-top: 3rem;
+  margin-inline: auto; /* This cleanly centers the card horizontally */
+  margin-bottom: 3%;
+  border-width: 1px;
+  border-radius: 12px;
+  border: 1px solid #214969; /* Softer outer border */
+  background-color: #031c30; /* Distinct background for the card */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 600px; /* Keep a fixed max width so it doesn't stretch too far */
+  max-width: 90vw;
+  transition: all 0.3s ease;
+}
+
+/* Ensure the grid children inherit the new card background instead of the global body background */
+.deployment-job * {
+  background-color: transparent;
+}
+
+.card {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+.card:hover {
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.6),
+    0 0 20px 0 rgba(15, 197, 237, 0.15); /* Soft glowing effect */
+  border-color: #0fc5ed; /* Highlight outer border on hover */
+}
+
+#deployment-job-title {
+  color: #44e8f2;
+  text-align: center;
+  margin: 1.5rem 0; /* Gives nice breathing room around the heading */
+  font-size: 1.25rem;
+  letter-spacing: 1px;
+}
+
+/* CSS GRID MAGIC */
+.status-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Left column takes 1 part space, right takes 2 parts */
+  border-top: 1px solid #214969; /* Softer inner line */
+}
+
+.grid-cell {
+  padding: 1.25rem 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.label {
+  color: #059099;
+  font-weight: 600;
+  border-right: 1px solid #214969; /* Softer inner line */
+}
+
+.value {
+  color: #24eaf7;
+  word-break: break-all; /* Prevents long UUIDs from breaking out of the box */
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; /* Tech feel */
+}
+
+.top-left,
+.top-right {
+  border-bottom: 1px solid #214969; /* Softer inner line */
+}
+
+.logs {
+  background-color: black;
+  border-radius: 5px;
+  border: 2px solid #0fc5ed;
+  width: max-content;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin: auto;
+}
+
+.log {
+  color: #92f1f7;
+  background-color: black;
+  padding: 0;
+}
