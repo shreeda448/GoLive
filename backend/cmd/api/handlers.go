@@ -103,9 +103,10 @@ func (q *MyAsyncQ) DeployHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func FeedDeployJobs(asyncQ MyAsyncQ) {
-	for {
-		curDeployJob := <-asyncQ.asyncQ
-		Worker(curDeployJob, asyncQ.db)
+	for curDeployJob := range asyncQ.asyncQ {
+		go func(curJob DeployJob) {
+			Worker(curJob, asyncQ.db)
+		}(curDeployJob)
 	}
 }
 
